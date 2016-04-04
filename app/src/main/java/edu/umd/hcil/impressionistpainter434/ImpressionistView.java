@@ -6,10 +6,11 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
-import android.graphics.Path;
 import android.graphics.Point;
+import android.graphics.PointF;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
+import android.os.SystemClock;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -29,7 +30,6 @@ public class ImpressionistView extends View {
     private Canvas _offScreenCanvas = null;
     private Bitmap _offScreenBitmap = null;
     private Paint _paint = new Paint();
-    private Path _path = new Path();
 
     private int _alpha = 150;
     private int _defaultRadius = 25;
@@ -71,8 +71,7 @@ public class ImpressionistView extends View {
         _paint.setColor(Color.RED);
         _paint.setAlpha(_alpha);
         _paint.setAntiAlias(true);
-        _paint.setStyle(Paint.Style.STROKE);
-        //_paint.setStyle(Paint.Style.FILL);
+        _paint.setStyle(Paint.Style.FILL);
         _paint.setStrokeWidth(4);
 
         _paintBorder.setColor(Color.BLACK);
@@ -115,6 +114,8 @@ public class ImpressionistView extends View {
      */
     public void clearPainting(){
         //TODO
+        _offScreenBitmap.eraseColor(Color.WHITE);
+        invalidate();
     }
 
     @Override
@@ -131,32 +132,174 @@ public class ImpressionistView extends View {
 
     @Override
     public boolean onTouchEvent(MotionEvent motionEvent){
-        float touchX = motionEvent.getX();
-        float touchY = motionEvent.getY();
 
-        Log.d("Testing", "X position is: " + touchX +  ", y position is: " + touchY);
+        float curTouchX = motionEvent.getX();
+        float curTouchY = motionEvent.getY();
+        //long startTime = SystemClock.elapsedRealtime();
+        long startTime = System.currentTimeMillis();
 
-        switch (motionEvent.getAction()) {
-            case MotionEvent.ACTION_DOWN:
-                _path.moveTo(touchX, touchY);
-                break;
-            case MotionEvent.ACTION_MOVE:
-                _path.lineTo(touchX, touchY);
-                break;
-            case MotionEvent.ACTION_UP:
-                _offScreenCanvas.drawPath(_path, _paint);
-                _path.reset();
-                break;
-            default:
-                return false;
-        }
-        //TODO
+        Bitmap imageViewBitmap = _imageView.getDrawingCache();
+        int colorAtTouchPixelInImage = imageViewBitmap.getPixel((int) curTouchX,
+                (int) curTouchY);
+        float brushRadius = 25;
+        float circleRadius = 25;
+        float circleSplatterRadius = 10;
+        double noScaleSpeed = 0.5;
+        _paint.setColor(colorAtTouchPixelInImage);
+
         //Basically, the way this works is to liste for Touch Down and Touch Move events and determine where those
         //touch locations correspond to the bitmap in the ImageView. You can then grab info about the bitmap--like the pixel color--
         //at that location
+        switch(motionEvent.getAction()){
+
+            case MotionEvent.ACTION_DOWN:
+            case MotionEvent.ACTION_MOVE:
+                int historySize = motionEvent.getHistorySize();
+                for (int i = 0; i < historySize; i++) {
+
+                    float touchX = motionEvent.getHistoricalX(i);
+                    float touchY = motionEvent.getHistoricalY(i);
+
+                    if(_brushType == BrushType.Square) {
+                        _offScreenCanvas.drawRect(touchX - brushRadius / 2, touchY - brushRadius / 2, touchX + brushRadius / 2,
+                                touchY + brushRadius / 2, _paint);
+                    }else if(_brushType == BrushType.Circle){
+
+                        if(_lastPoint == null){
+                            _offScreenCanvas.drawCircle(touchX, touchY, circleRadius, _paint);
+                        }else {
+                            double distance = getDistance(touchX, touchY, _lastPoint);
+                            long timeDiff = startTime - _lastPointTime;
+                            double speed = distance / timeDiff;
+                            Log.d("Speed2", "The speed is: " + speed);
+                            double scaleFactor = speed / noScaleSpeed;
+                            Log.d("Speed2", "The Scale Factor is: " + scaleFactor);
+
+                            float newBrushRadius = circleRadius * (float) scaleFactor;
+                            Log.d("Speed2", "The new brush radius is: " + newBrushRadius);
+
+
+                            if (newBrushRadius < 10) {
+                                _offScreenCanvas.drawCircle(touchX, touchY, 10, _paint);
+                            } else if (newBrushRadius > 80) {
+                                _offScreenCanvas.drawCircle(touchX, touchY, 80, _paint);
+                            } else {
+                                _offScreenCanvas.drawCircle(touchX, touchY, newBrushRadius,
+                                        _paint);
+                            }
+                        }
+
+                        //_offScreenCanvas.drawCircle(touchX, touchY, circleRadius, _paint);
+                    }else if(_brushType == BrushType.CircleSplatter) {
+                        Random rand = new Random();
+                        int numCircles = rand.nextInt(6) + 2;
+                        _offScreenCanvas.drawCircle(touchX, touchY, circleSplatterRadius, _paint);
+                        for(int j = 0; j < numCircles; j++){
+                            int distanceX = rand.nextInt(12)-6;
+                            int distanceY = rand.nextInt(12)-6;
+
+                            float newX = touchX + distanceX;
+                            float newY = touchY + distanceY;
+
+                            colorAtTouchPixelInImage = imageViewBitmap.getPixel((int) newX,
+                                    (int) newY);
+                            _paint.setColor(colorAtTouchPixelInImage);
+                            _offScreenCanvas.drawCircle(newX, newY, circleSplatterRadius, _paint);
+                        }
+                    }
+                }
+
+                if(_brushType == BrushType.Square) {
+                    _offScreenCanvas.drawRect(curTouchX - brushRadius / 2, curTouchY - brushRadius / 2,
+                            curTouchX + brushRadius / 2, curTouchY + brushRadius / 2, _paint);
+                }else if(_brushType == BrushType.Circle){
+
+                    if(_lastPoint == null){
+                        _offScreenCanvas.drawCircle(curTouchX, curTouchY, circleRadius, _paint);
+                    }else{
+                        double distance = getDistance(curTouchX, curTouchY, _lastPoint);
+                        long timeDiff = startTime - _lastPointTime;
+                        double speed = distance / timeDiff;
+                        Log.d("Speed", "The speed is: "+ speed);
+                        double scaleFactor = speed/noScaleSpeed;
+                        Log.d("Speed", "The Scale Factor is: "+ scaleFactor);
+
+                        float newBrushRadius = circleRadius * (float) scaleFactor;
+                        Log.d("Speed", "The new brush radius is: "+ newBrushRadius);
+
+                        if(newBrushRadius < 10){
+                            _offScreenCanvas.drawCircle(curTouchX, curTouchY, 10, _paint);
+                        }else if(newBrushRadius > 80){
+                            _offScreenCanvas.drawCircle(curTouchX, curTouchY, 80, _paint);
+                        }else {
+                            _offScreenCanvas.drawCircle(curTouchX, curTouchY, newBrushRadius,
+                                    _paint);
+                        }
+
+                    }
+                }else if(_brushType == BrushType.CircleSplatter){
+                    Random rand = new Random();
+                    int numCircles = rand.nextInt(6) + 2;
+                    _offScreenCanvas.drawCircle(curTouchX, curTouchY, circleSplatterRadius, _paint);
+                    for(int j = 0; j < numCircles; j++){
+                        int distanceX = rand.nextInt(12)-6;
+                        int distanceY = rand.nextInt(12)-6;
+
+                        float newX = curTouchX + distanceX;
+                        float newY = curTouchY + distanceY;
+
+                        colorAtTouchPixelInImage = imageViewBitmap.getPixel((int) newX,
+                                (int) newY);
+                        _paint.setColor(colorAtTouchPixelInImage);
+                        _offScreenCanvas.drawCircle(newX, newY, circleSplatterRadius, _paint);
+                    }
+                }
+                break;
+            case MotionEvent.ACTION_UP:
+                _lastPointTime = -1;
+                _lastPoint = null;
+                break;
+        }
+
+        _lastPointTime = startTime;
+        _lastPoint = new Point((int) curTouchX, (int) curTouchY);
 
         invalidate();
         return true;
+    }
+
+    private double getDistance(float curX, float curY ,Point lastPoint){
+        return Math.sqrt(Math.pow((double) curX - lastPoint.x, 2) +
+                Math.pow((double) curY - lastPoint.y, 2));
+    }
+
+    private class PaintPoint {
+        private Paint _paint = new Paint();
+        private PointF _point;
+        private float _brushRadius;
+
+        public PaintPoint(float x, float y, float brushRadius, Paint paintSrc){
+            // Copy the fields from paintSrc into this paint
+            _paint.set(paintSrc);
+            _point = new PointF(x, y);
+            _brushRadius = brushRadius;
+        }
+
+        public Paint getPaint(){
+            return _paint;
+        }
+
+        public float getX(){
+            return _point.x;
+        }
+
+        public float getY(){
+            return _point.y;
+        }
+
+        public float getBrushRadius(){
+            return _brushRadius;
+        }
     }
 
 
@@ -174,11 +317,9 @@ public class ImpressionistView extends View {
         Rect rect = new Rect();
 
         if (imageView == null || imageView.getDrawable() == null) {
-            Log.d("testing", "I bez in this house!");
             return rect;
         }
 
-        Log.d("testing", "I not be in the house!");
         // Get image dimensions
         // Get image matrix values and place them in an array
         float[] f = new float[9];
