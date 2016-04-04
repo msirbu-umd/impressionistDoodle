@@ -25,6 +25,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity implements OnMenuItemClickListener {
 
@@ -83,6 +84,63 @@ public class MainActivity extends AppCompatActivity implements OnMenuItemClickLi
         popupMenu.setOnMenuItemClickListener(this);
         popupMenu.inflate(R.menu.popup_menu);
         popupMenu.show();
+    }
+
+    public void onButtonClickSave(View v) {
+        AlertDialog.Builder saveDialog = new AlertDialog.Builder(this);
+        saveDialog.setTitle("Save drawing");
+        saveDialog.setMessage("Save drawing to device Gallery?");
+        saveDialog.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+
+                //This method saves the current bitmap to the gallery. See
+                //corresponding method for more details. NOTE: Permission are checked BEFORE a user even interacts
+                //with the app so if the user doesn't give us permission this button is disabled.
+                savePicture2();
+                //checkStoragePermissions();
+            }
+        });
+        saveDialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+        saveDialog.show();
+    }
+
+    public void savePicture(){
+        _impressionistView.setDrawingCacheEnabled(true);
+        String imgSaved = MediaStore.Images.Media.insertImage(getContentResolver(),
+                _impressionistView.getDrawingCache(),
+                UUID.randomUUID().toString() + ".png", "drawing");
+
+        if(imgSaved!=null){
+            Toast savedToast = Toast.makeText(getApplicationContext(),
+                    "Drawing saved to Gallery!", Toast.LENGTH_SHORT);
+            savedToast.show();
+        }
+        else{
+            Toast unsavedToast = Toast.makeText(getApplicationContext(),
+                    "Oops! Image could not be saved.", Toast.LENGTH_SHORT);
+            unsavedToast.show();
+        }
+
+        //_impressionistView.destroyDrawingCache();
+    }
+
+    public void savePicture2(){
+        _impressionistView.setDrawingCacheEnabled(true);
+        Bitmap drawingBitmap = _impressionistView.getDrawingCache();
+
+        String fName = UUID.randomUUID().toString() + ".png";
+        File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), fName);
+        try {
+            boolean compressSucceeded = drawingBitmap.compress(Bitmap.CompressFormat.PNG, 100, new FileOutputStream(file));
+            FileUtils.addImageToGallery(file.getAbsolutePath(), getApplicationContext());
+            Toast.makeText(getApplicationContext(), "Saved to " + file.getAbsolutePath(), Toast.LENGTH_SHORT).show();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 
     public boolean onMenuItemClick(MenuItem item) {
