@@ -25,12 +25,18 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity implements OnMenuItemClickListener {
 
     private static int RESULT_LOAD_IMAGE = 1;
     private  ImpressionistView _impressionistView;
+    private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 100;
+    private Uri fileUri;
+    public static final int MEDIA_TYPE_IMAGE = 1;
+    public static final int MEDIA_TYPE_VIDEO = 2;
 
     // These images are downloaded and added to the Android Gallery when the 'Download Images' button is clicked.
     // This was super useful on the emulator where there are no images by default
@@ -63,7 +69,7 @@ public class MainActivity extends AppCompatActivity implements OnMenuItemClickLi
         _impressionistView = (ImpressionistView)findViewById(R.id.viewImpressionist);
         ImageView imageView = (ImageView)findViewById(R.id.viewImage);
         _impressionistView.setImageView(imageView);
-
+        _impressionistView.setDrawingCacheEnabled(true);
     }
 
     public void onButtonClickClear(View v) {
@@ -108,6 +114,60 @@ public class MainActivity extends AppCompatActivity implements OnMenuItemClickLi
         saveDialog.show();
     }
 
+    public void onButtonClickCamera(View v) {
+        //Toast.makeText(MainActivity.this, "YOU STARTING!", Toast.LENGTH_SHORT).show();
+        //_impressionistView.clearPainting();
+
+        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+
+        //Log.d("TESTING", intent.toString());
+        //fileUri = getOutputMediaFileUri(MEDIA_TYPE_IMAGE); // create a file to save the image
+        //Log.d("TESTING", fileUri.toString());
+        //intent.putExtra(MediaStore.EXTRA_OUTPUT, fileUri); // set the image file name
+
+        // start the image capture Intent
+        startActivityForResult(intent, CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE);
+    }
+
+    /** Create a file Uri for saving an image or video */
+    private static Uri getOutputMediaFileUri(int type){
+        return Uri.fromFile(getOutputMediaFile(type));
+    }
+
+    /** Create a File for saving an image or video */
+    private static File getOutputMediaFile(int type){
+        // To be safe, you should check that the SDCard is mounted
+        // using Environment.getExternalStorageState() before doing this.
+
+        File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_PICTURES), "MyCameraApp");
+        // This location works best if you want the created images to be shared
+        // between applications and persist after your app has been uninstalled.
+
+        // Create the storage directory if it does not exist
+        if (! mediaStorageDir.exists()){
+            if (! mediaStorageDir.mkdirs()){
+                Log.d("MyCameraApp", "failed to create directory");
+                return null;
+            }
+        }
+
+        // Create a media file name
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        File mediaFile;
+        if (type == MEDIA_TYPE_IMAGE){
+            mediaFile = new File(mediaStorageDir.getPath() + File.separator +
+                    "IMG_"+ timeStamp + ".jpg");
+        } else if(type == MEDIA_TYPE_VIDEO) {
+            mediaFile = new File(mediaStorageDir.getPath() + File.separator +
+                    "VID_"+ timeStamp + ".mp4");
+        } else {
+            return null;
+        }
+
+        return mediaFile;
+    }
+
     public void savePicture(){
         _impressionistView.setDrawingCacheEnabled(true);
         String imgSaved = MediaStore.Images.Media.insertImage(getContentResolver(),
@@ -129,8 +189,8 @@ public class MainActivity extends AppCompatActivity implements OnMenuItemClickLi
     }
 
     public void savePicture2(){
-        _impressionistView.setDrawingCacheEnabled(true);
-        Bitmap drawingBitmap = _impressionistView.getDrawingCache();
+       // _impressionistView.setDrawingCacheEnabled(true);
+        Bitmap drawingBitmap = _impressionistView.getOffScreenBitmap();
 
         String fName = UUID.randomUUID().toString() + ".png";
         File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), fName);
@@ -262,6 +322,31 @@ public class MainActivity extends AppCompatActivity implements OnMenuItemClickLi
                 e.printStackTrace();
             }
 
+        }else if (requestCode == CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE) {
+            Log.d("TESTING", "Sent CODE");
+            if (resultCode == RESULT_OK) {
+                Log.d("TESTING", "HERE I AM!");
+                Log.d("TESTING", "So good!");
+                Bitmap bmp = (Bitmap) data.getExtras().get("data");
+                Log.d("TESTING", "OKAY!?");
+                ImageView imageView = (ImageView) findViewById(R.id.viewImage);
+                imageView.destroyDrawingCache();
+                imageView.setImageBitmap(bmp);
+                imageView.setDrawingCacheEnabled(true);
+                // Image captured and saved to fileUri specified in the Intent
+                //Toast.makeText(this, "Image saved to:\n" +
+                //        data.getData(), Toast.LENGTH_LONG).show();
+
+            } else if (resultCode == RESULT_CANCELED) {
+                // User cancelled the image capture
+                Log.d("TESTING", "Cancel");
+                Toast.makeText(this, "CANCELLED:", Toast.LENGTH_LONG).show();
+            } else {
+                Log.d("TESTING", "Failure for Image!");
+                Toast.makeText(this, "F" +
+                        data.getData(), Toast.LENGTH_LONG).show();
+                // Image capture failed, advise user
+            }
         }
     }
 }

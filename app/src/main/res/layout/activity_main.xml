@@ -49,7 +49,7 @@
             <Button
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Download Images"
+                android:text="DL Images"
                 android:id="@+id/buttonDownloadImages"
                 android:onClick="onButtonClickDownloadImages"/>
 
@@ -80,6 +80,12 @@
                 android:text="Save"
                 android:id="@+id/buttonSave"
                 android:onClick="onButtonClickSave"/>
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Camera"
+                android:id="@+id/cameraSave"
+                android:onClick="onButtonClickCamera"/>
 
 
         </LinearLayout>

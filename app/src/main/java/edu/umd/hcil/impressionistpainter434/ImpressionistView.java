@@ -302,6 +302,9 @@ public class ImpressionistView extends View {
         }
     }
 
+    public Bitmap getOffScreenBitmap(){
+        return _offScreenBitmap;
+    }
 
 
 
