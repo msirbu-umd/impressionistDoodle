@@ -23,6 +23,6 @@ in that location
 [8] https://developer.android.com/intl/zh-tw/reference/android/hardware/Camera.html <br />
 [9] https://stackoverflow.com/questions/20859584/how-to-save-image-in-android-gallery/20859733#20859733 <br />
 [10] https://stackoverflow.com/questions/7887078/android-saving-file-to-external-storage/7887114#7887114 <br />
-[11] Canvas discussion board
-[12] Jon's in-class activities 
-[13] Jon's skeleton code
+[11] Canvas discussion board <br />
+[12] Jon's in-class activities <br />
+[13] Jon's skeleton code <br />
