@@ -5,9 +5,9 @@
 2) In the folder it was saved, extract-all (I used 7zip) <br />
 3) Open Android Studio <br />
 4) On the quick start menu click Import project (Eclipse ADT, Gradle, etc.) <br />
-5) Navigate to where you extracted the files, you should see androidDoodle-Sirbu (with the android studio symbol) <br />
+5) Navigate to where you extracted the files, you should see impressionistDoodle-mainFocus (with the android studio symbol) <br />
 in that location
-6) Click on adroidDoodle-Sirbu and click ok <br />
+6) Click on impressionistDoodle-mainFocus and click ok <br />
 7) The project should be loaded in. <br />
 ## Sources Used 
 
