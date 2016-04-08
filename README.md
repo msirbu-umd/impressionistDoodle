@@ -9,6 +9,9 @@
 in that location
 6) Click on impressionistDoodle-mainFocus and click ok <br />
 7) The project should be loaded in. <br />
+
+NOTE: To be able to run the additional feature, you must have a device that allows for camera access. 
+
 ## Sources Used 
 
 #### Actual source code also shows which links helped with what sections of the code
