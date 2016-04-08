@@ -72,6 +72,10 @@ public class MainActivity extends AppCompatActivity implements OnMenuItemClickLi
         _impressionistView.setDrawingCacheEnabled(true);
     }
 
+    /**
+     * Method used when user clicks the clear button.
+     * @param v
+     */
     public void onButtonClickClear(View v) {
         new AlertDialog.Builder(this)
                 .setTitle("Clear Painting?")
@@ -85,6 +89,10 @@ public class MainActivity extends AppCompatActivity implements OnMenuItemClickLi
                 .setNegativeButton(android.R.string.no, null).show();
     }
 
+    /**
+     * Method involved when person clicks brush button
+     * @param v
+     */
     public void onButtonClickSetBrush(View v) {
         PopupMenu popupMenu = new PopupMenu(this, v);
         popupMenu.setOnMenuItemClickListener(this);
@@ -92,6 +100,10 @@ public class MainActivity extends AppCompatActivity implements OnMenuItemClickLi
         popupMenu.show();
     }
 
+    /**
+     * Method involved when user clicks save button
+     * @param v
+     */
     public void onButtonClickSave(View v) {
         AlertDialog.Builder saveDialog = new AlertDialog.Builder(this);
         saveDialog.setTitle("Save drawing");
@@ -101,8 +113,7 @@ public class MainActivity extends AppCompatActivity implements OnMenuItemClickLi
 
                 //This method saves the current bitmap to the gallery. See
                 //corresponding method for more details. NOTE: Permission are checked BEFORE a user even interacts
-                //with the app so if the user doesn't give us permission this button is disabled.
-                //savePicture();
+                //with the app so if the user doesn't give us permission this button is disabled
                 savePicture2();
                 //checkStoragePermissions();
             }
@@ -130,79 +141,17 @@ public class MainActivity extends AppCompatActivity implements OnMenuItemClickLi
      * @param v
      */
     public void onButtonClickCamera(View v) {
-        //Toast.makeText(MainActivity.this, "YOU STARTING!", Toast.LENGTH_SHORT).show();
-        //_impressionistView.clearPainting();
-
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-
-        //Log.d("TESTING", intent.toString());
-        //fileUri = getOutputMediaFileUri(MEDIA_TYPE_IMAGE); // create a file to save the image
-        //Log.d("TESTING", fileUri.toString());
-        //intent.putExtra(MediaStore.EXTRA_OUTPUT, fileUri); // set the image file name
-
         // start the image capture Intent
         startActivityForResult(intent, CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE);
     }
 
-    /** Create a file Uri for saving an image or video */
-    private static Uri getOutputMediaFileUri(int type){
-        return Uri.fromFile(getOutputMediaFile(type));
-    }
-
-    /** Create a File for saving an image or video */
-    private static File getOutputMediaFile(int type){
-        // To be safe, you should check that the SDCard is mounted
-        // using Environment.getExternalStorageState() before doing this.
-
-        File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_PICTURES), "MyCameraApp");
-        // This location works best if you want the created images to be shared
-        // between applications and persist after your app has been uninstalled.
-
-        // Create the storage directory if it does not exist
-        if (! mediaStorageDir.exists()){
-            if (! mediaStorageDir.mkdirs()){
-                Log.d("MyCameraApp", "failed to create directory");
-                return null;
-            }
-        }
-
-        // Create a media file name
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        File mediaFile;
-        if (type == MEDIA_TYPE_IMAGE){
-            mediaFile = new File(mediaStorageDir.getPath() + File.separator +
-                    "IMG_"+ timeStamp + ".jpg");
-        } else if(type == MEDIA_TYPE_VIDEO) {
-            mediaFile = new File(mediaStorageDir.getPath() + File.separator +
-                    "VID_"+ timeStamp + ".mp4");
-        } else {
-            return null;
-        }
-
-        return mediaFile;
-    }
-
-    public void savePicture(){
-        _impressionistView.setDrawingCacheEnabled(true);
-        String imgSaved = MediaStore.Images.Media.insertImage(getContentResolver(),
-                _impressionistView.getDrawingCache(),
-                UUID.randomUUID().toString() + ".png", "drawing");
-
-        if(imgSaved!=null){
-            Toast savedToast = Toast.makeText(getApplicationContext(),
-                    "Drawing saved to Gallery!", Toast.LENGTH_SHORT);
-            savedToast.show();
-        }
-        else{
-            Toast unsavedToast = Toast.makeText(getApplicationContext(),
-                    "Oops! Image could not be saved.", Toast.LENGTH_SHORT);
-            unsavedToast.show();
-        }
-
-        //_impressionistView.destroyDrawingCache();
-    }
-
+    /**
+     * This is the method used to save a picture. Help to create this method came
+     * from canvas (Jon), Jon's other code, and websites:
+     * https://stackoverflow.com/questions/20859584/how-to-save-image-in-android-gallery/20859733#20859733
+     * https://stackoverflow.com/questions/7887078/android-saving-file-to-external-storage/7887114#7887114
+     */
     public void savePicture2(){
        // _impressionistView.setDrawingCacheEnabled(true);
         Bitmap drawingBitmap = _impressionistView.getOffScreenBitmap();
@@ -218,6 +167,7 @@ public class MainActivity extends AppCompatActivity implements OnMenuItemClickLi
         }
     }
 
+    //This was slightly modified to only include the brushes that I had implemented.
     public boolean onMenuItemClick(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.menuCircle:
@@ -330,30 +280,31 @@ public class MainActivity extends AppCompatActivity implements OnMenuItemClickLi
             }
 
 
+            /**
+             * Code for this came from:
+             * https://developer.android.com/intl/zh-tw/guide/topics/media/camera.html
+             *  https://stackoverflow.com/questions/5991319/capture-image-from-camera-and-display-in-activity
+             *  and Jon's loading code example.
+             *
+             *  This is used when the user clicks the Camera button to capture photo.
+             */
         }else if (requestCode == CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE) {
-            Log.d("TESTING", "Sent CODE");
+
             if (resultCode == RESULT_OK) {
-                Log.d("TESTING", "HERE I AM!");
-                Log.d("TESTING", "So good!");
                 Bitmap bmp = (Bitmap) data.getExtras().get("data");
-                Log.d("TESTING", "OKAY!?");
+
                 ImageView imageView = (ImageView) findViewById(R.id.viewImage);
                 imageView.destroyDrawingCache();
                 imageView.setImageBitmap(bmp);
                 imageView.setDrawingCacheEnabled(true);
-                // Image captured and saved to fileUri specified in the Intent
-                //Toast.makeText(this, "Image saved to:\n" +
-                //        data.getData(), Toast.LENGTH_LONG).show();
 
             } else if (resultCode == RESULT_CANCELED) {
                 // User cancelled the image capture
-                Log.d("TESTING", "Cancel");
                 Toast.makeText(this, "CANCELLED:", Toast.LENGTH_LONG).show();
             } else {
                 Log.d("TESTING", "Failure for Image!");
                 Toast.makeText(this, "F" +
                         data.getData(), Toast.LENGTH_LONG).show();
-                // Image capture failed, advise user
             }
         }
     }

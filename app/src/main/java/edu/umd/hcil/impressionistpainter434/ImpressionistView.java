@@ -39,6 +39,7 @@ public class ImpressionistView extends View {
     private Paint _paintBorder = new Paint();
     private BrushType _brushType = BrushType.Square;
     private float _minBrushRadius = 5;
+    private Random rand = new Random();
 
     public ImpressionistView(Context context) {
         super(context);
@@ -169,17 +170,18 @@ public class ImpressionistView extends View {
                         if(_lastPoint == null){
                             _offScreenCanvas.drawCircle(touchX, touchY, circleRadius, _paint);
                         }else {
+
+                            //Calculate speed and set brush side accordingly
                             double distance = getDistance(touchX, touchY, _lastPoint);
                             long timeDiff = startTime - _lastPointTime;
                             double speed = distance / timeDiff;
-                            Log.d("Speed2", "The speed is: " + speed);
+                            //Log.d("Speed2", "The speed is: " + speed);
                             double scaleFactor = speed / noScaleSpeed;
-                            Log.d("Speed2", "The Scale Factor is: " + scaleFactor);
-
+                            //Log.d("Speed2", "The Scale Factor is: " + scaleFactor);
                             float newBrushRadius = circleRadius * (float) scaleFactor;
-                            Log.d("Speed2", "The new brush radius is: " + newBrushRadius);
+                            //Log.d("Speed2", "The new brush radius is: " + newBrushRadius);
 
-
+                            //Set maximum and minimum brush size
                             if (newBrushRadius < 10) {
                                 _offScreenCanvas.drawCircle(touchX, touchY, 10, _paint);
                             } else if (newBrushRadius > 80) {
@@ -192,16 +194,18 @@ public class ImpressionistView extends View {
 
                         //_offScreenCanvas.drawCircle(touchX, touchY, circleRadius, _paint);
                     }else if(_brushType == BrushType.CircleSplatter) {
-                        Random rand = new Random();
+                        //Randomly generate 2 to 8 extra circles
                         int numCircles = rand.nextInt(6) + 2;
                         _offScreenCanvas.drawCircle(touchX, touchY, circleSplatterRadius, _paint);
                         for(int j = 0; j < numCircles; j++){
+                            //Position these circles a random position away (+/- 6 away in X & Y)
                             int distanceX = rand.nextInt(12)-6;
                             int distanceY = rand.nextInt(12)-6;
 
                             float newX = touchX + distanceX;
                             float newY = touchY + distanceY;
 
+                            //Get the color at each of those pixels.
                             colorAtTouchPixelInImage = imageViewBitmap.getPixel((int) newX,
                                     (int) newY);
                             _paint.setColor(colorAtTouchPixelInImage);
@@ -217,33 +221,37 @@ public class ImpressionistView extends View {
 
                     if(_lastPoint == null){
                         _offScreenCanvas.drawCircle(curTouchX, curTouchY, circleRadius, _paint);
-                    }else{
+                    }else {
+                        /**
+                         * Calculate speed.
+                         */
                         double distance = getDistance(curTouchX, curTouchY, _lastPoint);
                         long timeDiff = startTime - _lastPointTime;
                         double speed = distance / timeDiff;
-                        Log.d("Speed", "The speed is: "+ speed);
-                        double scaleFactor = speed/noScaleSpeed;
-                        Log.d("Speed", "The Scale Factor is: "+ scaleFactor);
-
+                        //Log.d("Speed", "The speed is: "+ speed);
+                        double scaleFactor = speed / noScaleSpeed;
+                        //Log.d("Speed", "The Scale Factor is: "+ scaleFactor);
                         float newBrushRadius = circleRadius * (float) scaleFactor;
-                        Log.d("Speed", "The new brush radius is: "+ newBrushRadius);
+                        //Log.d("Speed", "The new brush radius is: "+ newBrushRadius);
 
                         /**
-                         * Used to set maximum and minimum circle brush sizes (don't want them
-                         * to be too big or too small!)
+                         * Used to set maximum and minimum circle brush sizes based on speed
+                         * (don't want then to be too big or too small!)
                          */
-                        if(newBrushRadius < 10){
+                        if (newBrushRadius < 10) {
                             _offScreenCanvas.drawCircle(curTouchX, curTouchY, 10, _paint);
-                        }else if(newBrushRadius > 80){
+                        } else if (newBrushRadius > 80) {
                             _offScreenCanvas.drawCircle(curTouchX, curTouchY, 80, _paint);
-                        }else {
+                        } else {
                             _offScreenCanvas.drawCircle(curTouchX, curTouchY, newBrushRadius,
                                     _paint);
                         }
 
                     }
                 }else if(_brushType == BrushType.CircleSplatter){
-                    Random rand = new Random();
+
+                    //Again randomly generate additional circles besides original
+                    //circle. The number and location are randomly generated.
                     int numCircles = rand.nextInt(6) + 2;
                     _offScreenCanvas.drawCircle(curTouchX, curTouchY, circleSplatterRadius, _paint);
                     for(int j = 0; j < numCircles; j++){
