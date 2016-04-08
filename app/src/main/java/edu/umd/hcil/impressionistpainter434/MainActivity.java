@@ -102,6 +102,7 @@ public class MainActivity extends AppCompatActivity implements OnMenuItemClickLi
                 //This method saves the current bitmap to the gallery. See
                 //corresponding method for more details. NOTE: Permission are checked BEFORE a user even interacts
                 //with the app so if the user doesn't give us permission this button is disabled.
+                //savePicture();
                 savePicture2();
                 //checkStoragePermissions();
             }
@@ -114,6 +115,20 @@ public class MainActivity extends AppCompatActivity implements OnMenuItemClickLi
         saveDialog.show();
     }
 
+    /***
+     * Getting the camera to work required A LOT of help. These sources really saved the day:
+     * https://stackoverflow.com/questions/5991319/capture-image-from-camera-and-display-in-activity
+     * https://developer.android.com/intl/zh-tw/guide/topics/media/camera.html
+     * https://developer.android.com/intl/zh-tw/guide/topics/manifest/uses-feature-element.html
+     * https://stackoverflow.com/questions/24155236/android-error-cant-connect-to-the-camara
+     * https://stackoverflow.com/questions/6391873/how-to-use-a-clicked-picture-in-a-new-activity/10230046#10230046
+     *https://developer.android.com/intl/zh-tw/reference/android/hardware/Camera.html
+     *
+     * I also decided to use the old Camera API because of this post:
+     * https://stackoverflow.com/questions/27272845/how-to-use-androids-camera-or-camera2-api-to-support-old-and-new-api-versions-w
+     *
+     * @param v
+     */
     public void onButtonClickCamera(View v) {
         //Toast.makeText(MainActivity.this, "YOU STARTING!", Toast.LENGTH_SHORT).show();
         //_impressionistView.clearPainting();
@@ -213,17 +228,9 @@ public class MainActivity extends AppCompatActivity implements OnMenuItemClickLi
                 Toast.makeText(this, "Square Brush", Toast.LENGTH_SHORT).show();
                 _impressionistView.setBrushType(BrushType.Square);
                 return true;
-            case R.id.menuLine:
-                Toast.makeText(this, "Line Brush", Toast.LENGTH_SHORT).show();
-                _impressionistView.setBrushType(BrushType.Line);
-                return true;
             case R.id.menuCircleSplatter:
                 Toast.makeText(this, "Circle Splatter Brush", Toast.LENGTH_SHORT).show();
                 _impressionistView.setBrushType(BrushType.CircleSplatter);
-                return true;
-            case R.id.menuLineSplatter:
-                Toast.makeText(this, "Line Splatter Brush", Toast.LENGTH_SHORT).show();
-                _impressionistView.setBrushType(BrushType.LineSplatter);
                 return true;
         }
         return false;
@@ -321,6 +328,7 @@ public class MainActivity extends AppCompatActivity implements OnMenuItemClickLi
             } catch (IOException e) {
                 e.printStackTrace();
             }
+
 
         }else if (requestCode == CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE) {
             Log.d("TESTING", "Sent CODE");

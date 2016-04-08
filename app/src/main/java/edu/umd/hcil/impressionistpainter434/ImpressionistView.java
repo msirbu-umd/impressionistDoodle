@@ -111,9 +111,10 @@ public class ImpressionistView extends View {
 
     /**
      * Clears the painting
+     * Inspired by:
+     * https://stackoverflow.com/questions/30485073/clear-bitmap-in-android
      */
     public void clearPainting(){
-        //TODO
         _offScreenBitmap.eraseColor(Color.WHITE);
         invalidate();
     }
@@ -147,7 +148,7 @@ public class ImpressionistView extends View {
         double noScaleSpeed = 0.5;
         _paint.setColor(colorAtTouchPixelInImage);
 
-        //Basically, the way this works is to liste for Touch Down and Touch Move events and determine where those
+        //Basically, the way this works is to listen for Touch Down and Touch Move events and determine where those
         //touch locations correspond to the bitmap in the ImageView. You can then grab info about the bitmap--like the pixel color--
         //at that location
         switch(motionEvent.getAction()){
@@ -227,6 +228,10 @@ public class ImpressionistView extends View {
                         float newBrushRadius = circleRadius * (float) scaleFactor;
                         Log.d("Speed", "The new brush radius is: "+ newBrushRadius);
 
+                        /**
+                         * Used to set maximum and minimum circle brush sizes (don't want them
+                         * to be too big or too small!)
+                         */
                         if(newBrushRadius < 10){
                             _offScreenCanvas.drawCircle(curTouchX, curTouchY, 10, _paint);
                         }else if(newBrushRadius > 80){
@@ -268,40 +273,23 @@ public class ImpressionistView extends View {
         return true;
     }
 
+    /**
+     * USed to calculate distance.
+     * @param curX
+     * @param curY
+     * @param lastPoint
+     * @return
+     */
     private double getDistance(float curX, float curY ,Point lastPoint){
         return Math.sqrt(Math.pow((double) curX - lastPoint.x, 2) +
                 Math.pow((double) curY - lastPoint.y, 2));
     }
 
-    private class PaintPoint {
-        private Paint _paint = new Paint();
-        private PointF _point;
-        private float _brushRadius;
 
-        public PaintPoint(float x, float y, float brushRadius, Paint paintSrc){
-            // Copy the fields from paintSrc into this paint
-            _paint.set(paintSrc);
-            _point = new PointF(x, y);
-            _brushRadius = brushRadius;
-        }
-
-        public Paint getPaint(){
-            return _paint;
-        }
-
-        public float getX(){
-            return _point.x;
-        }
-
-        public float getY(){
-            return _point.y;
-        }
-
-        public float getBrushRadius(){
-            return _brushRadius;
-        }
-    }
-
+    /**
+     * Used to get the private bitmap so I can properly save the image.
+     * @return
+     */
     public Bitmap getOffScreenBitmap(){
         return _offScreenBitmap;
     }
